@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -127,6 +127,30 @@ test("HTTP API: origin, CSRF, host protection, validation, persisted state and i
       1,
     );
     const root = await fetch(base);
+    const importRequest = {
+      method: "POST",
+      headers: { ...headers, "Idempotency-Key": randomUUID() },
+      body: readFileSync(
+        new URL(
+          "../public/imports/florist-market-catalog.json",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    };
+    const importedResponse = await fetch(
+      base + "/api/operations/product.import",
+      importRequest,
+    );
+    assert.equal(importedResponse.status, 200);
+    const imported = await importedResponse.json();
+    assert.equal(imported.result.imported.length, 57);
+    assert.equal(imported.state.products.length, 84);
+    const repeated = await (
+      await fetch(base + "/api/operations/product.import", importRequest)
+    ).json();
+    assert.deepEqual(repeated.result, imported.result);
+    assert.equal(repeated.state.products.length, 84);
     assert.equal(root.status, 200);
     assert.ok(
       root.headers

@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AppState, Operation } from "../shared/types";
+import type { AppState, Operation, OperationResult } from "../shared/types";
 import { browserDemo } from "./config";
 interface Store {
   data: AppState;
@@ -15,7 +15,7 @@ interface Store {
     op: Operation,
     body: unknown,
     message?: string,
-  ) => Promise<{ id: string } | null>;
+  ) => Promise<OperationResult | null>;
   notify: (message: string) => void;
   refresh: () => Promise<void>;
 }
@@ -103,7 +103,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setData(json.state);
       retry.current = undefined;
       setToast(message);
-      return json.result as { id: string };
+      return json.result as OperationResult;
     } catch (e) {
       throw new Error(
         e instanceof Error

@@ -16,7 +16,7 @@
     "format": "prettier --write src server shared tests docs README.md vite.config.ts tsconfig.json package.json",
     "build:demo": "tsc --noEmit && vite build --mode demo",
     "preview:demo": "vite preview --mode demo --host 127.0.0.1",
-    "test:wasm": "TEST_SQL_DRIVER=wasm node --import tsx --test tests/service.test.ts"
+    "test:wasm": "TEST_SQL_DRIVER=wasm node --import tsx --test tests/service.test.ts tests/product-import.test.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans": "^5.2.0",

@@ -1230,6 +1230,34 @@ td small {
   padding: 12px;
   margin: 0 24px 18px;
 }
+.product-import {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.product-import .field {
+  font-size: 14px;
+}
+.product-import a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.product-import input[type="file"] {
+  max-width: 100%;
+  min-height: 44px;
+}
+.product-import [role="status"] p {
+  margin-top: 10px;
+}
+.import-preview {
+  max-height: 280px;
+}
+.import-preview td:nth-child(2) {
+  white-space: normal;
+  min-width: 170px;
+}
+.import-warning {
+  color: var(--amber);
+}
 .modal-actions {
   display: flex;
   justify-content: flex-end;

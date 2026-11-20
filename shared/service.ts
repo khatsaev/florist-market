@@ -3,6 +3,12 @@ import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 const randomUUID = () => globalThis.crypto.randomUUID();
 import type { SqlDatabase, SQLValue } from "./database";
 import { z } from "zod";
+import {
+  productSchema,
+  productImportSchema,
+  planProductImport,
+  ProductImportError,
+} from "./product-import";
 import type {
   Product,
   Recipe,
@@ -35,20 +41,6 @@ const date = z
     "Некорректная дата",
   );
 const note = z.string().trim().max(500).default("");
-const productSchema = z.object({
-  id: id.optional(),
-  sku: text,
-  barcode: z.string().trim().max(50).default(""),
-  name: text,
-  category: z.enum(["box", "flask", "packaging", "material"]),
-  size: z.string().trim().max(60),
-  color: z.string().trim().max(60),
-  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
-  unit: z.enum(["шт", "м", "м²", "кг", "л"]),
-  minStock: money,
-  price: money,
-  cost: money,
-});
 const recipeSchema = z.object({
   id: id.optional(),
   productId: id,
@@ -234,6 +226,9 @@ export class StoreService {
         case "product.save":
           result = this.saveProduct(body);
           break;
+        case "product.import":
+          result = this.importProducts(body, requestId);
+          break;
         case "stock.adjust":
           result = this.adjustStock(body);
           break;
@@ -283,6 +278,30 @@ export class StoreService {
       });
       return result;
     });
+  }
+  importProducts(body: unknown, requestId: string) {
+    const batch = productImportSchema.parse(body);
+    try {
+      const plan = planProductImport(
+        batch,
+        this.all<Product>("SELECT * FROM products"),
+      );
+      for (const product of plan.added) this.saveProduct(product);
+      this.audit(
+        "Импорт товаров",
+        requestId,
+        `Добавлено: ${plan.added.length}; пропущено: ${plan.skipped.length}`,
+      );
+      return {
+        id: requestId,
+        imported: plan.added.map((p) => p.sku),
+        skipped: plan.skipped,
+      };
+    } catch (error) {
+      if (error instanceof ProductImportError)
+        throw new DomainError(error.message);
+      throw error;
+    }
   }
   saveProduct(body: unknown) {
     const data = productSchema.parse(body);

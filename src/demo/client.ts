@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 import { openWasmDatabase } from "../../shared/wasm-database";
 import { StoreService } from "../../shared/service";
 import { seed } from "../../shared/seed";
-import type { AppState, Operation } from "../../shared/types";
+import type { AppState, Operation, OperationResult } from "../../shared/types";
 import { openSnapshots, updateSnapshot } from "./persistence";
 
 let runtime:
@@ -33,7 +33,7 @@ export async function demoRequest(
         const service = new StoreService(db);
         if (!bytes) seed(service);
         const result = operation
-          ? (service.execute(operation, body, requestId!) as { id: string })
+          ? (service.execute(operation, body, requestId!) as OperationResult)
           : null;
         const state: AppState = {
           ...service.state(),

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import {
   Plus,
   Search,
   Download,
+  Upload,
   ArrowDownToLine,
   SlidersHorizontal,
   Pencil,
@@ -21,9 +22,11 @@ import {
 } from "../components/ui";
 import type { Product, Category } from "../../shared/types";
 import { categoryLabels } from "../../shared/types";
+const ProductImport = lazy(() => import("../components/ProductImport"));
 type Editor =
   | { kind: "product"; product?: Product }
   | { kind: "stock"; product?: Product }
+  | { kind: "import" }
   | null;
 export default function Inventory({
   search,
@@ -128,6 +131,13 @@ export default function Inventory({
             />
           </div>
           <div className="actions">
+            <button
+              className="button"
+              onClick={() => setEditor({ kind: "import" })}
+            >
+              <Upload size={17} aria-hidden="true" />
+              Импорт товаров
+            </button>
             <button
               className={"button " + (low ? "selected" : "")}
               aria-pressed={low}
@@ -310,7 +320,19 @@ export default function Inventory({
           </div>
         </section>
       ) : null}
-      {editor?.kind === "product" ? (
+      {editor?.kind === "import" ? (
+        <Suspense
+          fallback={
+            <Modal title="Импорт товаров" onClose={() => setEditor(null)}>
+              <p className="form-fields" role="status">
+                Загружаем форму…
+              </p>
+            </Modal>
+          }
+        >
+          <ProductImport onClose={() => setEditor(null)} />
+        </Suspense>
+      ) : editor?.kind === "product" ? (
         <ProductEditor
           product={editor.product}
           onClose={() => setEditor(null)}

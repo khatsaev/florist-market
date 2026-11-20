@@ -135,6 +135,7 @@ export interface AppState {
 }
 export type Operation =
   | "product.save"
+  | "product.import"
   | "stock.adjust"
   | "recipe.save"
   | "production.create"
@@ -148,6 +149,11 @@ export type Operation =
   | "finance.create"
   | "debt.create"
   | "debt.pay";
+export interface OperationResult {
+  id: string;
+  imported?: string[];
+  skipped?: string[];
+}
 export const categoryLabels: Record<Category, string> = {
   box: "Шляпные коробки",
   flask: "Колбы «Аква»",
